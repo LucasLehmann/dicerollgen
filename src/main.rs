@@ -52,8 +52,6 @@ fn generate_rolls(dice: Vec<[usize; 2]>) -> Vec<Vec<usize>> {
             pools.push(pool.clone());
         }
     }
-    // create a vector of all unique combinations of one value from each pool
-    // for each pool, add the first value to a new vector
     let mut combinations: Vec<Vec<usize>> = vec![vec![]];
     for pool in &pools {
         let mut new_result: Vec<Vec<usize>> = Vec::new();
