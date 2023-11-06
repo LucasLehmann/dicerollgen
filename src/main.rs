@@ -3,31 +3,65 @@ use std::env;
 fn main() {
     let mut args: Vec<String> = env::args().collect();
     args.remove(0);
-    let mut list: Vec<String> = Vec::new();
     if args.len() == 0 {
-        println!("Usage: dice [0] <dice> \n
-        0: sort by value instead of frequency \n
-        <dice>: <number of dice>d<number of sides> \n
-        <number of dice>: number of dice to roll \n
-        <number of sides>: number of sides on each die \n
-        Example: dice 4d6 2d8");
+        print_help(None);
+    }
+    if args.get(1) == "help" {
+        print_help(args.get(1));
+        return;
+    } else if args.get(1) == "version" || args.get(1) == "v"{
+        // TODO: choose version number and info
         return;
     }
-    let mut sorted: bool = true;
-    if args[0] == "0" {
-        sorted = false;
+    let sorted: bool = if args.get(1) == "1" {
         args.remove(0);
+        true
+    } else if args.get(1) == "0" {
+        args.remove(0);
+        false
+    } else {
+        false
+    };
+    let list = dice_roll_odds(args, sorted);
+    
+    // let mut sorted: bool = true;
+    // if args[0] == "0" {
+    //     sorted = false;
+    //     args.remove(0);
+    // } else if args.len() > 0 {
+    //     let mode: String = args[0].clone();
+    //     args.remove(0);
+    // }
+    //
+    // let mut list: Vec<String> = Vec::new();
+    // if args.len() > 0 {
+    //     list = dice_roll_odds(args, sorted);
+    // }
+    // println!("Dice:");
+    // for roll in list {
+    //     println!("{}", roll);
+    // }
+}
+
+fn print_help(mode: Option<&String>) {
+    println!("Usage: dice [0] <dice> \n
+    0: sort by value instead of frequency \n
+    <dice>: <number of dice>d<number of sides> \n
+    <number of dice>: number of dice to roll \n
+    <number of sides>: number of sides on each die \n
+    Example: dice 4d6 2d8");
+    match mode {
+        // TODO: add help for specific modes
+        None => {}
     }
-    if args.len() > 0 {
-        let dice: Vec<[usize; 2]> = handle_input(args);
-        let pools: Vec<Vec<usize>> = generate_rolls(dice);
-        let results = roll_results(pools, sorted);
-        list = result_list(results);
-    }
-    println!("Dice:");
-    for roll in list {
-        println!("{}", roll);
-    }
+    
+}
+
+fn dice_roll_odds(args: Vec<String>, sorted: bool) -> Vec<String> {
+    let dice: Vec<[usize; 2]> = handle_input(args);
+    let pools: Vec<Vec<usize>> = generate_rolls(dice);
+    let results = roll_results(pools, sorted);
+    result_list(results)
 }
 
 fn handle_input(input: Vec<String>) -> Vec<[usize; 2]> {
