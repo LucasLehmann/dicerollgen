@@ -6,3 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+itertools =  { version = "0.12.0", optional = true }
+rand = { version = "0.8.5", optional = true }
+
+[features]
+default = ["roll", "stats"]
+stats = ["itertools"]
+roll = ["rand"]
