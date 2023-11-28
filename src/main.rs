@@ -1,6 +1,9 @@
 use std::env;
 use std::process::ExitCode;
 
+#[cfg(feature = "stats")]
+use std::collections::HashMap;
+
 #[cfg(feature = "roll")]
 use rand::Rng;
 
@@ -16,10 +19,6 @@ const ROLL_ROLLS: usize = ROLL | 0x02;
 const ROLL_SUM_ROLLS: usize = ROLL | ROLL_SUM | ROLL_ROLLS; // 0x23
 
 fn main() -> ExitCode {
-    /*let (args, mode) = get_args().unwrap_or_else(|err| {
-        print_help("help");
-        panic!("Error: {}", err);
-    });*/
     match get_args() {
         Ok((args, mode)) => {
             #[cfg(debug_assertions)]
@@ -54,10 +53,9 @@ fn roll(dice: Vec<(usize, usize)>, mode: usize) {
     match mode {
         ROLL_SUM => roll_sum(dice),
         ROLL_ROLLS => roll_rolls(dice),
-        ROLL_SUM_ROLLS => {
+        ROLL_SUM_ROLLS | _ => {
             roll_sum_rolls(dice);
         }
-        _ => roll_sum(dice),
     }
 }
 
@@ -99,21 +97,29 @@ fn stats(_args: Vec<[usize; 2]>, _mode: usize) {
 fn stats(dice: Vec<(usize, usize)>, mode: usize) {
     let mut rolls: Vec<Vec<usize>> = Vec::new();
     for die in dice {
-        rolls.push((1..=die.1).collect());
+        for _ in 0..die.0 {
+            rolls.push((1..=die.1).collect());
+        }
     }
-    let product: Vec<Vec<usize>> = cartesian_product(rolls);
+    let product: HashMap<usize, usize> = cartesian_product(rolls).iter().map(|vec| vec.iter().sum())
+    .fold(HashMap::new(), |mut map, sum| {
+        *map.entry(sum).or_insert(0) += 1;
+        map
+    }).into_iter().collect();
+    let mut product: Vec<(usize, usize)> = product.into_iter().collect();
     match mode {
-        STATS_FREQ => {
-            product.iter().for_each(|vec| {
-                let mut sum = 0;
-                for item in vec {
-                    sum += item;
-                }
-                println!("{}: {}", sum, 1);
+        STATS_VAL => {
+            product.sort_by(|a, b| a.0.cmp(&b.0));
+            product.iter().for_each(|(val, freq)| {
+                println!("{}: {}", val, freq);
             });
         }
-        STATS_VAL => {}
-        _ => {}
+        STATS_FREQ | _ => {
+            product.sort_by(|a, b| a.1.cmp(&b.1));
+            product.iter().for_each(|(val, freq)| {
+                println!("{:03}: {:02}", val, freq);
+            });
+        }
     }
 }
 
@@ -130,6 +136,10 @@ fn cartesian_product(pools: Vec<Vec<usize>>) -> Vec<Vec<usize>> {
             }
         }
         result = new_result;
+    }
+    #[cfg(debug_assertions)]
+    {
+        println!("Cartesian product: {:?}", result);
     }
     return result;
 }
