@@ -106,18 +106,19 @@ fn stats(dice: Vec<(usize, usize)>, mode: usize) {
         *map.entry(sum).or_insert(0) += 1;
         map
     }).into_iter().collect();
+    let total: usize = product.values().sum();
     let mut product: Vec<(usize, usize)> = product.into_iter().collect();
     match mode {
         STATS_VAL => {
             product.sort_by(|a, b| a.0.cmp(&b.0));
             product.iter().for_each(|(val, freq)| {
-                println!("{}: {}", val, freq);
+                println!("{}: {}/{} {:.2}%", val, freq, total, *freq as f64 * 100.0 / total as f64);
             });
         }
         STATS_FREQ | _ => {
             product.sort_by(|a, b| a.1.cmp(&b.1));
             product.iter().for_each(|(val, freq)| {
-                println!("{:03}: {:02}", val, freq);
+                println!("{:03}: {:02}/{} {:.2}%", val, freq, total, *freq as f64 * 100.0 / total as f64);
             });
         }
     }
